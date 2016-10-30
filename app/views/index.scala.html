@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Click Client</title>
+		<link rel="icon" type="image/x-icon" href="@routes.Assets.versioned("images/counter.png")"/>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	</head>
+	<body>
+		<div class="help-block"></div>
+		<div class="row">
+    		<div class="col-md-2 col-md-offset-5">
+    			<button class="btn btn-primary" onclick="Increment()">
+    				Counter <span class="badge" id="counterValue">
+   				</button>
+			</div>
+		</div>
+		<script>
+			var FrameType=
+			{
+				INCREMENT: 'INCREMENT',
+				UPDATE: 'UPDATE'
+			}
+	
+			function WebSocketFrame(type,data)
+			{
+				this.type=type;
+				this.data=data;
+			}
+	
+			function MessageReceived(event)
+			{
+				var frame=JSON.parse(event.data);
+				
+				if(frame.command=FrameType.UPDATE)
+				{
+					UpdateCounter(frame.data);
+				}
+			}
+	
+			function Increment()
+			{
+				var frame=new WebSocketFrame(FrameType.INCREMENT);
+				socket.send(JSON.stringify(frame));
+			}
+	
+			function UpdateCounter(value)
+			{
+				$('#counterValue').html(value);
+			}
+	
+			function SetupSocket()
+			{
+				socket=new WebSocket("@routes.CounterController.socket().webSocketURL(request)");
+				socket.onmessage=MessageReceived;
+				socket.onclose=SetupSocket;
+			}
+	
+			var socket;
+			SetupSocket();
+		</script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	</body>
+</html>
